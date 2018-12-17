@@ -9,13 +9,13 @@ import 'package:flutter/rendering.dart';
 ///NumberPicker is a widget designed to pick a number between #minValue and #maxValue
 class NumberPicker extends StatelessWidget {
   ///height of every list element
-  static const double DEFAULT_ITEM_EXTENT = 50.0;
+  static const double DEFAULT_ITEM_EXTENT = 25.0;
 
   ///width of integer list view
-  static const double DEFAULT_INTEGER_LISTVIEW_WIDTH = 100.0;
+  static const double DEFAULT_INTEGER_LISTVIEW_WIDTH = 50.0;
 
   ///width of decimal list view
-  static const double DEFAULT_DECIMAL_LISTVIEW_WIDTH = 100.0;
+  static const double DEFAULT_DECIMAL_LISTVIEW_WIDTH = 35.0;
 
   ///constructor for integer number picker
   NumberPicker.integer({
