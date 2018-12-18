@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 /// Created by Marcin Szałek
+/// Heavily modified by Max Franks
 
 ///NumberPicker is a widget designed to pick a number between #minValue and #maxValue
 class NumberPicker extends StatelessWidget {
@@ -24,11 +25,10 @@ class NumberPicker extends StatelessWidget {
     @required this.minValue,
     @required this.maxValue,
     @required this.onChanged,
-    this.infinite = false,
     this.itemExtent = DEFAULT_ITEM_EXTENT,
     this.integerListViewWidth = DEFAULT_INTEGER_LISTVIEW_WIDTH,
-    this.decimalListViewWidth = DEFAULT_DECIMAL_LISTVIEW_WIDTH,
     this.step = 1,
+    this.suffixText = "",
   })
       : assert(initialValue != null),
         assert(minValue != null),
@@ -40,10 +40,12 @@ class NumberPicker extends StatelessWidget {
         selectedDecimalValue = -1,
         decimalPlaces = 0,
         intScrollController = new ScrollController(
-//          initialScrollOffset: (initialValue - minValue) ~/ step * itemExtent,
+          initialScrollOffset: (initialValue - minValue) ~/ step * itemExtent,
         ),
         decimalScrollController = null,
         _listViewHeight = 3 * itemExtent,
+        decimalListViewWidth = DEFAULT_DECIMAL_LISTVIEW_WIDTH,
+        multi = false,
         super(key: key);
 
   ///constructor for decimal number picker
@@ -53,11 +55,11 @@ class NumberPicker extends StatelessWidget {
     @required this.minValue,
     @required this.maxValue,
     @required this.onChanged,
-    this.infinite = false,
     this.decimalPlaces = 1,
     this.itemExtent = DEFAULT_ITEM_EXTENT,
     this.integerListViewWidth = DEFAULT_INTEGER_LISTVIEW_WIDTH,
     this.decimalListViewWidth = DEFAULT_DECIMAL_LISTVIEW_WIDTH,
+    this.suffixText = "",
   })
       : assert(initialValue != null),
         assert(minValue != null),
@@ -80,39 +82,35 @@ class NumberPicker extends StatelessWidget {
         ),
         _listViewHeight = 3 * itemExtent,
         step = 1,
+        multi = false,
         super(key: key);
 
-  ///constructor for integer number picker
-  NumberPicker.infinite({
+  ///constructor for multi-integer number picker
+  NumberPicker.multi({
     Key key,
     @required int initialValue,
     @required this.onChanged,
-    this.infinite = true,
-    this.minValue = 0,
-    this.maxValue = 9,
     this.itemExtent = DEFAULT_ITEM_EXTENT,
     this.integerListViewWidth = DEFAULT_INTEGER_LISTVIEW_WIDTH,
-    this.decimalListViewWidth = DEFAULT_DECIMAL_LISTVIEW_WIDTH,
     this.step = 1,
+    this.minValue = 0,
+    this.maxValue = 9,
   })
       : assert(initialValue != null),
-        assert(minValue != null),
-        assert(maxValue != null),
-        assert(maxValue > minValue),
         assert(initialValue >= minValue && initialValue <= maxValue),
-        assert(step > 0),
+        multi = true,
         selectedIntValue = initialValue,
         selectedDecimalValue = -1,
         decimalPlaces = 0,
+        suffixText = "",
         intScrollController = new ScrollController(
-//          initialScrollOffset: (initialValue - minValue) ~/ step * itemExtent,
+          initialScrollOffset: (initialValue - minValue) ~/ step * itemExtent,
         ),
         decimalScrollController = null,
         _listViewHeight = 3 * itemExtent,
+        decimalListViewWidth = DEFAULT_DECIMAL_LISTVIEW_WIDTH,
         super(key: key);
 
-
-  final bool infinite;
 
   ///called when selected value changes
   final ValueChanged<num> onChanged;
@@ -158,6 +156,11 @@ class NumberPicker extends StatelessWidget {
   /// if min=0, max=5, step=3, then items will be 0 and 3.
   final int step;
 
+  /// suffixText adds text after the list elements
+  final String suffixText;
+
+  final bool multi;
+
   //
   //----------------------------- PUBLIC ------------------------------
   //
@@ -190,26 +193,39 @@ class NumberPicker extends StatelessWidget {
     TextStyle selectedStyle = themeData.textTheme.headline.copyWith(
         color: themeData.accentColor);
 
-    if (decimalPlaces == 0) {
-      return _integerListView(themeData);
-    } else {
-      return new Row(
-        children: <Widget>[
-          _integerListView(themeData),
-          new Align(
-            heightFactor: 1.1,
-            alignment: Alignment.bottomCenter,
+    // Row children
+    List<Widget> rowChildren = <Widget>[
+      _integerListView(themeData),
+    ];
+
+    if (decimalPlaces > 0) {
+      // Add decimal point
+      rowChildren.add(new Align(
+          heightFactor: 1.1,
+          alignment: Alignment.center,
+          child: new Container(
+            height: 30.0, width: 1.0,
+            margin: const EdgeInsets.only(left: 6.0, right: 4.0),
             child: new Text(".", style: selectedStyle),
-          ),
-          _decimalListView(themeData),
-          new Align(
-            alignment: Alignment.centerLeft,
-            child: new Text("%", style: selectedStyle),
-          ),
-        ],
-        mainAxisAlignment: MainAxisAlignment.center,
-      );
+          )));
+
+      // Add decimal list
+      rowChildren.add(_decimalListView(themeData));
     }
+
+    // Add suffix if needed
+    if (suffixText != "") {
+      // Suffix text widget
+      rowChildren.add(new Align(
+        alignment: Alignment.center,
+        child: new Text(suffixText, style: selectedStyle),
+      ));
+    }
+
+    return new Row(
+      children: rowChildren.toList(),
+      mainAxisAlignment: MainAxisAlignment.center,
+    );
   }
 
   Widget _integerListView(ThemeData themeData) {
@@ -220,56 +236,33 @@ class NumberPicker extends StatelessWidget {
 
     int itemCount = (maxValue - minValue) ~/ step + 3;
 
+    Widget listView = new ListView.builder(
+      physics: new BouncingScrollPhysics(),
+      controller: intScrollController,
+      itemExtent: itemExtent,
+      itemCount: itemCount,
+      cacheExtent: _calculateCacheExtent(itemCount),
+      itemBuilder: (BuildContext context, int index) {
+        final int value = _intValueFromIndex(index);
 
-    Widget listView;
-    if (!infinite) {
-      listView = new ListView.builder(
-        controller: intScrollController,
-        itemExtent: itemExtent,
-        itemCount: itemCount,
-        cacheExtent: _calculateCacheExtent(itemCount),
-        itemBuilder: (BuildContext context, int index) {
-          final int value = _intValueFromIndex(index);
+        //define special style for selected (middle) element
+        final TextStyle itemStyle = value == selectedIntValue
+            ? selectedStyle
+            : defaultStyle;
 
-          //define special style for selected (middle) element
-          final TextStyle itemStyle = value == selectedIntValue
-              ? selectedStyle
-              : defaultStyle;
+        bool isExtra = index == 0 || index == itemCount - 1;
 
-          bool isExtra = index == 0 || index == itemCount - 1;
-
-          return isExtra
-              ? new Container() //empty first and last element
-              : new Center(
-            child: new Align(
-                alignment: Alignment.centerRight,
-                child: new Text(value.toString(), style: itemStyle)),
-          );
-        },
-      );
-    } else {
-      listView = new InfiniteListView.builder(
-          itemExtent: itemExtent,
-          cacheExtent: _calculateCacheExtent(itemCount),
-          itemBuilder: (BuildContext context, int index) {
-            final int value = _intValueFromIndex(index);
-
-            //define special style for selected (middle) element
-            final TextStyle itemStyle = value == selectedIntValue
-                ? selectedStyle
-                : defaultStyle;
-
-//          bool isExtra = index == 0 || index == itemCount - 1;
-
-            return new Center(
-              child: new Align(
-                  alignment: Alignment.centerRight,
-                  child: new Text(value.toString(), style: itemStyle)),
-            );
-          }
-      );
-    }
-
+        return isExtra
+            ? Container()
+            : new Center(
+          child: new Align(
+              alignment: multi ? Alignment.center : (isExtra
+                  ? Alignment.center
+                  : Alignment.centerRight),
+              child: new Text(value.toString(), style: itemStyle)),
+        );
+      },
+    );
 
     return new NotificationListener(
       child: new Container(
@@ -295,6 +288,7 @@ class NumberPicker extends StatelessWidget {
         height: _listViewHeight,
         width: decimalListViewWidth,
         child: new ListView.builder(
+          physics: new BouncingScrollPhysics(),
           controller: decimalScrollController,
           itemExtent: itemExtent,
           itemCount: itemCount,
@@ -302,19 +296,23 @@ class NumberPicker extends StatelessWidget {
             final int value = index - 1;
 
             //define special style for selected (middle) element
-            final TextStyle itemStyle =
-            value == selectedDecimalValue ? selectedStyle : defaultStyle;
+            final TextStyle itemStyle = value == selectedDecimalValue
+                ? selectedStyle
+                : defaultStyle;
 
             bool isExtra = index == 0 || index == itemCount - 1;
+            String text = value.toString().padLeft(
+                decimalPlaces, '0');
 
             return isExtra
                 ? new Container() //empty first and last element
                 : new Center(
               child: new Align(
-                alignment: Alignment.topLeft,
+                alignment: Alignment.center,
                 child: new Text(
-                    value.toString().padLeft(decimalPlaces, '0'),
-                    style: itemStyle),),
+                    text,
+                    style: itemStyle),
+              ),
             );
           },
         ),
