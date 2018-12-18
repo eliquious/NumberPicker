@@ -11,6 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
 
+  infinite_listview: ^1.0.0
+
 flutter:
   uses-material-design: true
 
