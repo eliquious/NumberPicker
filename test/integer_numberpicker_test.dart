@@ -67,8 +67,7 @@ void main() {
         expectedValue: 3);
   });
 
-  testWidgets('Min value==step, force animate',
-      (WidgetTester tester) async {
+  testWidgets('Min value==step, force animate', (WidgetTester tester) async {
     await _testNumberPicker(
         tester: tester,
         minValue: 10,
@@ -80,17 +79,16 @@ void main() {
         animateToItself: true);
   });
 
-  testWidgets('Force animate works',
-          (WidgetTester tester) async {
-        await _testNumberPicker(
-            tester: tester,
-            minValue: 10,
-            maxValue: 50,
-            initialValue: 10,
-            scrollBy: 13,
-            expectedValue: 23,
-            animateToItself: true);
-      });
+  testWidgets('Force animate works', (WidgetTester tester) async {
+    await _testNumberPicker(
+        tester: tester,
+        minValue: 10,
+        maxValue: 50,
+        initialValue: 10,
+        scrollBy: 13,
+        expectedValue: 23,
+        animateToItself: true);
+  });
 }
 
 Future<NumberPicker> _testNumberPicker(
@@ -140,7 +138,7 @@ Future<NumberPicker> _testNumberPicker(
 _scrollNumberPicker(
     Offset pickerPosition, WidgetTester tester, int scrollBy) async {
   Offset pickerCenter = Offset(
-    pickerPosition.dx + NumberPicker.DEFAULT_LISTVIEW_WIDTH / 2,
+    pickerPosition.dx + NumberPicker.DEFAULT_INTEGER_LISTVIEW_WIDTH / 2,
     pickerPosition.dy + 1.5 * NumberPicker.DEFAULT_ITEM_EXTENT,
   );
   final TestGesture testGesture = await tester.startGesture(pickerCenter);
