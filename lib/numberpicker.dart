@@ -30,6 +30,7 @@ class NumberPicker extends StatelessWidget {
     this.step = 1,
     this.centerText = false,
     this.suffixText = "",
+    this.rowAlignment = MainAxisAlignment.center,
   })  : assert(initialValue != null),
         assert(minValue != null),
         assert(maxValue != null),
@@ -158,6 +159,8 @@ class NumberPicker extends StatelessWidget {
   /// Centers text for integer list items
   final bool centerText;
 
+  final MainAxisAlignment rowAlignment;
+  
   //
   //----------------------------- PUBLIC ------------------------------
   //
@@ -222,7 +225,7 @@ class NumberPicker extends StatelessWidget {
 
     return new Row(
       children: rowChildren.toList(),
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: rowAlignment,
     );
   }
 

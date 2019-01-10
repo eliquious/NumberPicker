@@ -27,6 +27,7 @@ class StringPicker extends StatelessWidget {
     this.itemExtent = DEFAULT_ITEM_EXTENT,
     this.listViewWidth = 120,
     this.suffixText = "",
+    this.rowAlignment = MainAxisAlignment.center,
   })  : assert(initialValue != null),
         assert(values != null),
         selectedValue = initialValue,
@@ -60,6 +61,7 @@ class StringPicker extends StatelessWidget {
   /// suffixText adds text after the list elements
   final String suffixText;
 
+  final MainAxisAlignment rowAlignment;
   //
   //----------------------------- PUBLIC ------------------------------
   //
