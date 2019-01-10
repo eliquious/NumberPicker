@@ -60,6 +60,7 @@ class NumberPicker extends StatelessWidget {
     this.integerListViewWidth = DEFAULT_INTEGER_LISTVIEW_WIDTH,
     this.decimalListViewWidth = DEFAULT_DECIMAL_LISTVIEW_WIDTH,
     this.suffixText = "",
+    this.rowAlignment = MainAxisAlignment.center,
   })  : assert(initialValue != null),
         assert(minValue != null),
         assert(maxValue != null),
@@ -94,6 +95,7 @@ class NumberPicker extends StatelessWidget {
     this.step = 1,
     this.minValue = 0,
     this.maxValue = 9,
+    this.rowAlignment = MainAxisAlignment.center,
   })  : assert(initialValue != null),
         assert(initialValue >= minValue && initialValue <= maxValue),
         centerText = true,
@@ -160,7 +162,7 @@ class NumberPicker extends StatelessWidget {
   final bool centerText;
 
   final MainAxisAlignment rowAlignment;
-  
+
   //
   //----------------------------- PUBLIC ------------------------------
   //
