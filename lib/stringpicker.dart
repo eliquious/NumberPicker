@@ -128,7 +128,7 @@ class StringPicker extends StatelessWidget {
       cacheExtent: _calculateCacheExtent(itemCount),
       itemBuilder: (BuildContext context, int index) {
         bool isExtra = index == 0 || index == itemCount - 1;
-        StringPickerItem item = new StringPickerItem("", -1);
+        StringPickerItem item = new StringPickerItem("", values[0].value);
 
         if (!isExtra) {
           item = values[index - 1];
@@ -166,9 +166,9 @@ class StringPicker extends StatelessWidget {
 
   int _intValueFromIndex(int index) {
     if (index == 0) {
-      return -1;
+      return values[0].value;
     } else if (index > values.length) {
-      return -1;
+      return values[values.length - 1].value;
     }
 
     // minValue + (index - 1) * step
